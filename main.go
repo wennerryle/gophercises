@@ -21,40 +21,62 @@ func main() {
 
 	showHelp := addArgument("help", "show this help", false)
 
-	go func() {
-		time.Sleep(time.Duration(*timerLimit) * time.Second)
-		fmt.Println("\nTime is over!")
-		os.Exit(1)
-	}()
-
 	parseArgs()
 
 	if *showHelp {
 		showDescriptions()
-		os.Exit(1)
+		os.Exit(0)
 	}
 
 	columns := readCsvFile(*path)
+	quizcards := csvToCards(columns)
+
+	go func() {
+		time.Sleep(time.Duration(*timerLimit) * time.Second)
+		fmt.Println("\nTime is over!")
+		os.Exit(0)
+	}()
+
+	takeQuiz(quizcards)
+}
+
+type quizCard struct {
+	question string
+	answer   string
+}
+
+func takeQuiz(cards []quizCard) {
 	reader := bufio.NewReader(os.Stdin)
 
-	for i, v := range columns {
-		question := v[0]
-		answer := v[1]
-
-		fmt.Printf("%v. %v: ", i, question)
+	for i, card := range cards {
+		fmt.Printf("%v. %v: ", i, card.question)
 
 		userAnswer, _ := reader.ReadString('\n')
 		userAnswer = strings.Trim(userAnswer, "\n ")
 
-		if userAnswer == answer {
-			println("that's correct!")
+		if userAnswer == card.answer {
+			fmt.Printf("that's correct!")
 		} else {
-			println("what the fuck are you doing?")
+			fmt.Printf("what the fuck are you doing?")
 		}
 	}
 }
 
-func readCsvFile(filePath string) [][]string {
+type CSV = [][]string
+
+func csvToCards(v CSV) []quizCard {
+	vLen := len(v)
+
+	res := make([]quizCard, vLen)
+
+	for i := 0; i < vLen; i++ {
+		res[i] = quizCard{v[i][0], v[i][1]}
+	}
+
+	return res
+}
+
+func readCsvFile(filePath string) CSV {
 	f, err := os.Open(filePath)
 	if err != nil {
 		log.Fatal("Unable to read input file "+filePath, err)

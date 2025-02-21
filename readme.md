@@ -3,8 +3,8 @@
 I'll save my work by tasks of videolessons by seperating them on different branches
 
 The way I'll learn `go` it's:
-1. Try to solve the task without the solution video
-2. If solved, then fix the bad solutions by watching the learning video
+1. Try to solve the task without the solution video | done
+2. If solved, then fix the bad solutions by watching the learning video | done
 3. If not solved, still wathcing the video and then try to solve the problem by myself.
 
 The requirements of this exercise:
