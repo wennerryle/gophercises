@@ -7,3 +7,6 @@ The way I'll learn `go` it's:
 2. If solved, then fix the bad solutions by watching the learning video
 3. If not solved, still wathcing the video and then try to solve the problem by myself.
 
+solved:
+- [x] [quiz-game](https://github.com/wennerryle/gophercises/tree/quiz-game)
+- [ ] [url-shortener](https://github.com/wennerryle/gophercises/tree/url-shortener)
