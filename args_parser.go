@@ -35,7 +35,7 @@ func addArgument[T int | string | bool](key, desc string, initialValue T) *T {
 	return &initialValue
 }
 
-func parse_args() {
+func parseArgs() {
 throughArgs:
 	for i := 0; i < len(os.Args); i++ {
 		currentNode := cmds.Front()
@@ -58,8 +58,8 @@ throughArgs:
 					i++
 					number, err := strconv.Atoi(os.Args[i])
 
-					if err == nil {
-						panic(fmt.Sprint("Can't transform", os.Args[i], "to integer"))
+					if err != nil {
+						panic(fmt.Sprint("Can't transform ", os.Args[i], " to integer"))
 					}
 
 					*v.ptr = number
