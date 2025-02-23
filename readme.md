@@ -10,3 +10,4 @@ The way I'll learn `go` it's:
 solved:
 - [x] [quiz-game](https://github.com/wennerryle/gophercises/tree/quiz-game)
 - [x] [url-shortener](https://github.com/wennerryle/gophercises/tree/url-shortener)
+- [ ] [choose-your-adventure](https://github.com/wennerryle/gophercises/tree/choose-your-adventure)
