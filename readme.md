@@ -11,5 +11,5 @@ The requirements of this [exercise](https://github.com/gophercises/urlshort):
 
 1. - [x] It's a url-shortener
 2. - [x] It's starts on localhost:8080
-3. - [ ] Shorted url must be saved into db
+3. - [x] Shorted url must be saved into db
 4. - [x] Add API that accept to create links yaml / json

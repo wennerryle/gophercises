@@ -1,33 +1,21 @@
 package main
 
 import (
-	"errors"
 	"fmt"
 	"net/http"
+
+	"gorm.io/gorm"
 )
 
-type TempRealization map[string]string
-
-func (m TempRealization) Get(key string) (string, error) {
-	v, exists := m[key]
-	if !exists {
-		return "", errors.New("that URL address was not found")
-	}
-	return v, nil
+type AddressBind struct {
+	Path string `gorm:"uniqueIndex"`
+	Url  string `gorm:"unique"`
 }
 
-func (m TempRealization) Set(key string, value string) error {
-	m[key] = value
-	return nil
-}
-
-// Build the MapHandler using the mux as the fallback
-var db = TempRealization{
-	"/urlshort-godoc": "https://godoc.org/github.com/gophercises/urlshort",
-	"/yaml-godoc":     "https://godoc.org/gopkg.in/yaml.v2",
-}
+var db *gorm.DB
 
 func main() {
+	db = getDB()
 	mux := defaultMux()
 
 	fmt.Println("Starting the server on http://localhost:8080")
@@ -45,27 +33,21 @@ func defaultMux() *http.ServeMux {
 	return mux
 }
 
-type AddressBind struct {
-	Path string `yaml:"path"`
-	Url  string `yaml:"url"`
+func setUrlsHandler(w http.ResponseWriter, r *http.Request) {
+	var addressBinds []AddressBind
+
+	err := parseFormat(w, r, &addressBinds)
+
+	if err != nil {
+		fmt.Fprintln(w, err.Error())
+	}
+
+	cleanTable(db)
+	updateTable(db, addressBinds)
 }
 
-func setUrlsHandler(w http.ResponseWriter, r *http.Request) {
-	var addressBind []AddressBind
-
-	err := parseFormat(w, r, &addressBind)
-
-	fmt.Printf("setUrlsHandler err: %v\n", err)
-
-	for k := range db {
-		delete(db, k)
-	}
-
-	fmt.Println(addressBind)
-
-	for _, v := range addressBind {
-		db[v.Path] = v.Url
-	}
+func dbProvider(value string) (string, error) {
+	return getValue(db, value)
 }
 
 func rootHandler(w http.ResponseWriter, r *http.Request) {
@@ -74,7 +56,7 @@ func rootHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	mapHandler(db, w, r)
+	mapHandler(dbProvider, w, r)
 }
 
 func showAPI(w http.ResponseWriter) {

@@ -5,20 +5,16 @@ import (
 	"net/http"
 )
 
-type UrlHandlerProvider interface {
-	Get(string) (string, error)
-}
-
 func mapHandler(
-	provider UrlHandlerProvider,
+	provider func(string) (string, error),
 	w http.ResponseWriter,
 	r *http.Request) {
 
-	longUrl, err := provider.Get(r.URL.Path)
+	longUrl, err := provider(r.URL.Path)
 
 	if err != nil {
 		w.WriteHeader(http.StatusNotFound)
-		fmt.Fprint(w, err.Error())
+		fmt.Fprintln(w, err.Error())
 		return
 	}
 

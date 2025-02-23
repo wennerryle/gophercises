@@ -14,10 +14,6 @@ const (
 	MIME_YAML = "application/yaml"
 )
 
-type Decoder interface {
-	Decode(ptr any) error
-}
-
 func parseFormat(w http.ResponseWriter, req *http.Request, dst any) error {
 	mediaType := strings.TrimSpace(
 		strings.Split(
@@ -29,7 +25,7 @@ func parseFormat(w http.ResponseWriter, req *http.Request, dst any) error {
 	switch mediaType {
 	case MIME_JSON:
 		req.Body = http.MaxBytesReader(w, req.Body, mb2b(1))
-		return json.NewDecoder(req.Body).Decode(&dst)
+		return json.NewDecoder(req.Body).Decode(dst)
 	case MIME_YAML:
 		req.Body = http.MaxBytesReader(w, req.Body, mb2b(1))
 		return yaml.NewDecoder(req.Body).Decode(dst)
