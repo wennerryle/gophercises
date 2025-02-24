@@ -1,14 +1,11 @@
 package main
 
 import (
-	"bufio"
 	"flag"
 	"fmt"
+	"html/template"
 	"net/http"
 	"os"
-	"strconv"
-	"strings"
-	"unicode/utf8"
 )
 
 func main() {
@@ -48,80 +45,6 @@ func getExecutableName() string {
 	return path[i+1:]
 }
 
-func cliStrategy(storyArc StoryArc) {
-	storyPart, ok := storyArc["intro"]
-
-	if !ok {
-		fmt.Println("User Intro not defined. Failed to start story")
-		return
-	}
-
-	for ok {
-		path := showConsoleStoryPart(storyPart)
-		storyPart, ok = storyArc[path]
-
-		fmt.Println()
-	}
-}
-
-func showConsoleStoryPart(storyPart StoryPart) string {
-	fmt.Println(storyPart.Title)
-
-	fmt.Print(strings.Repeat("_", utf8.RuneCountInString(storyPart.Title)) + "\n\n")
-
-	for _, v := range storyPart.Story {
-		fmt.Println(v + "\n")
-	}
-
-	optionsAmount := len(storyPart.Options)
-
-	for i := 0; i < optionsAmount; i++ {
-		fmt.Printf("%v. %v\n", i+1, storyPart.Options[i].Text)
-	}
-
-	if optionsAmount == 0 {
-		return ""
-	}
-
-	selected := getAnswer(1, len(storyPart.Options))
-
-	return storyPart.Options[selected-1].Arc
-}
-
-// Accepts answer in selected range. Ex: getAnswer(0, 1) will return 0 or 1
-func getAnswer(min, max int) int {
-	reader := bufio.NewReader(os.Stdin)
-
-	for {
-		fmt.Print("Твой выбор: ")
-		bytes, _, err := reader.ReadLine()
-
-		if err != nil {
-			fmt.Println("Произошла ошибка:", err.Error())
-			continue
-		}
-
-		selected, err := strconv.Atoi(string(bytes))
-
-		if err != nil {
-			fmt.Print("Можно вводить только числа. ")
-			continue
-		}
-
-		if selected > max {
-			fmt.Printf("Максимальный вариант ответа %v\n", max)
-			continue
-		}
-
-		if selected < min {
-			fmt.Printf("Минимальный вариант ответа %v\n", min)
-			continue
-		}
-
-		return selected
-	}
-}
-
 func httpStrategy(port int, handler http.Handler) {
 	url := fmt.Sprintf("localhost:%v", port)
 	mux := http.NewServeMux()
@@ -137,10 +60,60 @@ func (story StoryArc) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if r.URL.Path == "/" {
-		storyStarterHTTP(w, r, story)
+		http.Redirect(w, r, "/intro", http.StatusTemporaryRedirect)
+		return
 	}
+
+	storyStarterHTTP(w, r, story, getTemplate())
 }
 
-func storyStarterHTTP(w http.ResponseWriter, r *http.Request, story StoryArc) {
+func storyStarterHTTP(w http.ResponseWriter, r *http.Request, story StoryArc, template *template.Template) {
+	path := r.URL.Path[1:]
+	storyPart, ok := story[path]
 
+	if !ok {
+		w.WriteHeader(http.StatusNotFound)
+		return
+	}
+
+	template.Execute(w, storyPart)
+}
+
+func getTemplate() *template.Template {
+	t, _ := template.New("page").Parse(
+		`<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Adventure</title>
+  <script src="https://unpkg.com/@tailwindcss/browser@4"></script>
+</head>
+<body class="max-w-4xl mx-auto px-4">
+  <h1 class="bg-blue-200 h-10 mb-4 mx-auto pt-2 rounded-b-lg text-center">
+    {{.Title}}
+  </h1>
+  <div class="flex flex-col gap-y-2">
+    {{
+      range .Story
+    }}
+      <p class="indent-12">
+        {{.}}
+      </p>
+    {{end}}
+  </div>
+  <div class="flex flex-col gap-y-2 mt-4">
+    {{
+      range .Options
+    }}
+    <a href="/{{.Arc}}" class="bg-blue-100 hover:bg-blue-200 mt-2 outline-1 outline-gray-400 p-2 rounded-sm transition-colors">
+      {{.Text}}
+    </a>
+    {{end}}
+  </div>
+</body>
+</html>`,
+	)
+
+	return t
 }

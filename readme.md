@@ -12,5 +12,5 @@ The requirements of this [exercise](https://github.com/gophercises/cyoa):
 
 1. - [x] The book story arc is provided by json file that must be parsed by `encoding/json`
 2. - [x] Create an `http.Handler` to handle the web requests instead of a handler function
-3. - [ ] Use the html/template package to create your HTML pages.
+3. - [x] Use the html/template package to create your HTML pages.
 4. - [x] Create CLI mode
